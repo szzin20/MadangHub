@@ -3,12 +3,13 @@ package database
 import (
 	"fmt"
 	"mhub/app/config"
+	"mhub/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-//database
+// database
 func InitDBMysql(cfg *config.AppConfig) *gorm.DB {
 
 	// declare struct config & variable connectionString
@@ -23,8 +24,10 @@ func InitDBMysql(cfg *config.AppConfig) *gorm.DB {
 	return db
 }
 
-func InitMigrationMysql(db *gorm.DB) {
+func InitMigration(db *gorm.DB) {
 
-	// db.AutoMigrate(&model.{})
-	// db.AutoMigrate(&model.{})
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Food{})
+	db.AutoMigrate(&models.Order{})
+
 }

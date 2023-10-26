@@ -1,7 +1,5 @@
 package helper
 
-
-
 func FailedResponse(message string) map[string]any {
 	return map[string]any{
 		"status":  "failed",
