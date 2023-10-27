@@ -2,43 +2,58 @@ package middlewares
 
 import (
 	"errors"
-	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
-	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
-func JWTMiddleware() echo.MiddlewareFunc {
-	godotenv.Load()
-	return echojwt.WithConfig(echojwt.Config{
-		SigningKey:    []byte(os.Getenv("JWT_SECRET")),
-		SigningMethod: "HS256",
-	})
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
 }
 
-func CreateToken(id int, role string) (string, error) {
-	godotenv.Load()
-	claims := jwt.MapClaims{}
-	claims["id"] = id
-	claims["role"] = role
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+func GenerateToken(username string, secretKey []byte) (string, error) {
+	// Durasi token berlaku
+	expirationTime := time.Now().Add(24 * time.Hour)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-}
-
-func ExtractToken(e echo.Context) (int, string) {
-	user := e.Get("user").(*jwt.Token)
-	if user.Valid {
-		claims := user.Claims.(jwt.MapClaims)
-		Id := int(claims["id"].(float64))
-		Role := claims["role"].(string)
-		return Id, Role
+	// Membuat klaim JWT
+	claims := &Claims{
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
 	}
-	return 0, ""
+
+	// Membuat token JWT dengan metode HMAC
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Menandatangani token dengan kunci rahasia
+	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func VerifyToken(tokenString string, secretKey []byte) (string, error) {
+	// Parsing token dengan secret key
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	// Memeriksa apakah token valid
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims.Username, nil
+	} else {
+		return "", errors.New("Invalid token")
+	}
 }
 
 func ExtractRole(c echo.Context) (string, error) {
