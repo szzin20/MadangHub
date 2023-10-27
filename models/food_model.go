@@ -13,8 +13,16 @@ type Food struct {
 	DeletedAT   time.Time 
 }
 
-func (e *Food) DecrementFood(quantity int) {
-	if e.Stock >= quantity {
-		e.Stock -= quantity
+func (f *Food) DecrementFood(quantity int) {
+	if f.Stock >= quantity {
+		f.Stock -= quantity
 	}
+}
+
+func (f *Food) IncrementFood(quantity int) {
+	f.Stock += quantity
+}
+
+func (f *Food) TotalCost(quantity int) float64 {
+	return f.Price * float64(quantity)
 }
