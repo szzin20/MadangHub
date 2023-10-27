@@ -1,23 +1,22 @@
 package helper
 
-func FailedResponse(message string) map[string]any {
-	return map[string]any{
-		"status":  "failed",
-		"message": message,
-	}
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
-func SuccessResponse(message string) map[string]any {
-	return map[string]any{
-		"status":  "success",
-		"message": message,
-	}
+type UserResponse struct {
+	ID          uint   `json:"id"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone"`
+	Address     string `json:"address"`
 }
 
-func SuccessWithDataResponse(message string, data any) map[string]any {
-	return map[string]any{
-		"status":  "success",
-		"message": message,
-		"data":    data,
-	}
+type EditUserResponse struct {
+	ID          uint   `json:"id"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Address     string `json:"address"`
 }
