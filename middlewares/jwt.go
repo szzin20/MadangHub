@@ -1,67 +1,40 @@
 package middlewares
 
 import (
-	"errors"
+	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
-
-func GenerateToken(username string, secretKey []byte) (string, error) {
-	// Durasi token berlaku
-	expirationTime := time.Now().Add(24 * time.Hour)
-
-	// Membuat klaim JWT
-	claims := &Claims{
-		Username: username,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-	}
-
-	// Membuat token JWT dengan metode HMAC
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Menandatangani token dengan kunci rahasia
-	tokenString, err := token.SignedString(secretKey)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
-}
-
-func VerifyToken(tokenString string, secretKey []byte) (string, error) {
-	// Parsing token dengan secret key
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+func JWTMiddleware() echo.MiddlewareFunc {
+	godotenv.Load(".env")
+	return echojwt.WithConfig(echojwt.Config{
+		SigningKey:    []byte(os.Getenv("JWT_SECRET")),
+		SigningMethod: "HS256",
 	})
-
-	if err != nil {
-		return "", err
-	}
-
-	// Memeriksa apakah token valid
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims.Username, nil
-	} else {
-		return "", errors.New("Invalid token")
-	}
 }
 
-func ExtractRole(c echo.Context) (string, error) {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	role, ok := claims["role"].(string)
-	if !ok {
-		return "", errors.New("role not found in token claims")
+func CreateToken(userId uint, role string) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["userId"] = userId
+	claims["role"] = role
+	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}
+
+func ExtractToken(e echo.Context) (uint, string) {
+	user := e.Get("user").(*jwt.Token)
+	if user.Valid {
+		claims := user.Claims.(jwt.MapClaims)
+		userId := claims["userId"].(float64)
+		role := claims["role"].(string)
+		return uint(userId), role
 	}
-	return role, nil
+	return 0, ""
 }
