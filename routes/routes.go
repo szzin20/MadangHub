@@ -1,8 +1,8 @@
 package routes
 
 import (
+	controller "mhub/controllers"
 	"mhub/middlewares"
-	"mhub/controllers"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,6 +25,11 @@ func InitmyRoutes() *echo.Echo {
 	foodGroup.GET("/:id", controller.GetFoodByID, middlewares.JWTMiddleware())
 	foodGroup.PUT("/:id", controller.UpdateFoodByID, middlewares.JWTMiddleware())
 	foodGroup.DELETE("/:id", controller.DeleteFood, middlewares.JWTMiddleware())
+
+	orderGroup := e.Group("/orders")
+	orderGroup.POST("", controller.CreateOrder, middlewares.JWTMiddleware())
+	orderGroup.GET("", controller.GetAllOrders, middlewares.JWTMiddleware())
+	orderGroup.GET("/:id", controller.GetOrderByID, middlewares.JWTMiddleware())
 
 	return e
 }

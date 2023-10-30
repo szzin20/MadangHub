@@ -5,6 +5,7 @@ import (
 	"mhub/constants"
 	"mhub/middlewares"
 	"mhub/models"
+	"mhub/responses"
 	"net/http"
 	"strconv"
 
@@ -19,12 +20,12 @@ func RegisterFoods(c echo.Context) error {
 			"error":   err.Error(),
 		})
 	}
-	
+
 	_, role := middlewares.ExtractToken(c)
 
 	if role != "admin" {
-        return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
-    }
+		return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
+	}
 
 	var existingFood models.Food
 	err := config.DB.Where("title = ?", food.Title).First(&existingFood).Error
@@ -56,10 +57,7 @@ func GetAllFoods(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve foods"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "Success: get all foods",
-		"foods":   foods,
-	})
+	return responses.FoodsList(c, foods)
 }
 
 // GetUserByID digunakan untuk mendapatkan data pengguna berdasarkan ID.
@@ -75,10 +73,7 @@ func GetFoodByID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "Foods not found"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "Success: get food by ID",
-		"food":    food,
-	})
+	return responses.FoodByID(c, food)
 }
 
 // Fungsi UpdateFoodByID digunakan untuk memperbarui data pengguna berdasarkan ID.
@@ -97,8 +92,8 @@ func UpdateFoodByID(c echo.Context) error {
 	}
 
 	if role != "admin" {
-        return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
-    }
+		return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
+	}
 
 	food := new(models.Food)
 	if err := c.Bind(food); err != nil {
@@ -115,8 +110,8 @@ func UpdateFoodByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status" : "Success",
 		"message": "Success update food",
-		"food":    existingFood,
 	})
 }
 
@@ -135,7 +130,7 @@ func DeleteFood(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "Food Not Found")
 	}
 
-	if role != "admin"  {
+	if role != "admin" {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
@@ -144,7 +139,7 @@ func DeleteFood(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success delete food",
-		"Food":    Food,
+		"status" : "Success",
+		"message": "Success delete food",
 	})
 }

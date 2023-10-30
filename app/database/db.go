@@ -28,6 +28,7 @@ func InitMigrationMysql(db *gorm.DB) {
     db.AutoMigrate(
         &models.User{},
         &models.Food{},
-        &models.Order{}, 
+        &models.Order{},
+		&models.OrderItem{},
         )
 }

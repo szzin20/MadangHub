@@ -5,8 +5,10 @@ import (
 	"mhub/constants"
 	"mhub/middlewares"
 	"mhub/models"
+	"mhub/responses"
 	"net/http"
 	"strconv"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -40,8 +42,8 @@ func RegisterUser(c echo.Context) error {
 
 	// Mengirim respons HTTP berhasil setelah pengguna berhasil didaftarkan
 	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  "Success",
 		"message": "Success create new user",
-		"user":    user,
 	})
 }
 
@@ -73,10 +75,10 @@ func LoginUserController(c echo.Context) error {
 		})
 	}
 	UserResponse := models.UserResponse{
-		ID:    user.ID,
-		Username:  user.Username,
-		Email: user.Email,
-		Token: token,
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Token:    token,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -90,18 +92,15 @@ func GetAllUsers(c echo.Context) error {
 	_, role := middlewares.ExtractToken(c)
 
 	if role != "admin" {
-        return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
-    }
-	
+		return c.JSON(http.StatusForbidden, map[string]string{"message": "Access denied"})
+	}
+
 	var users []models.User
 	if err := config.DB.Find(&users).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve users"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "Success: get all users",
-		"users":   users,
-	})
+	return responses.UserList(c, users)
 }
 
 // GetUserByID digunakan untuk mendapatkan data pengguna berdasarkan ID.
@@ -122,10 +121,7 @@ func GetUserByID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "User not found"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "Success: get user by ID",
-		"user":    user,
-	})
+	return responses.UserResponses(c, user.ID, user.Username, user.Email, user.Address, user.Role)
 }
 
 // Fungsi UpdateUserByID digunakan untuk memperbarui data pengguna berdasarkan ID.
@@ -162,11 +158,10 @@ func UpdateUserByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "Success",
 		"message": "Success update user",
-		"user":    existingUser,
 	})
 }
-
 
 // Menghapus data user berdasarkan ID
 func DeleteUser(c echo.Context) error {
@@ -192,8 +187,7 @@ func DeleteUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success delete user",
-		"User":    User,
+		"status": "Success",
+		"message": "Success delete user",
 	})
 }
-
