@@ -9,6 +9,11 @@ import (
 
 func InitmyRoutes() *echo.Echo {
 	e := echo.New()
+
+	e.POST("/recommend-food", func(c echo.Context) error {
+        return controller.RecommendFood(c, controller.NewFoodUsecase())
+    })
+
 	middlewares.LogMiddleware(e)
 
 	userGroup := e.Group("/users")
@@ -30,6 +35,8 @@ func InitmyRoutes() *echo.Echo {
 	orderGroup.POST("", controller.CreateOrder, middlewares.JWTMiddleware())
 	orderGroup.GET("", controller.GetAllOrders, middlewares.JWTMiddleware())
 	orderGroup.GET("/:id", controller.GetOrderByID, middlewares.JWTMiddleware())
+
+
 
 	return e
 }
