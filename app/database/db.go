@@ -10,8 +10,6 @@ import (
 )
 
 func InitDBMysql(cfg *config.AppConfig) *gorm.DB {
-
-	// declare struct config & variable connectionString
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
 		cfg.DBUSER, cfg.DBPASS, cfg.DBHOST, cfg.DBPORT, cfg.DBNAME)
 
