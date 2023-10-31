@@ -3,8 +3,8 @@ package config
 import (
 	"os"
 	"strconv"
-
-	"github.com/joho/godotenv"
+	"github.com/logrus"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
