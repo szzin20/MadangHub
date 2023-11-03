@@ -48,6 +48,45 @@ func RegisterUser(c echo.Context) error {
 }
 
 // Fungsi LoginUserController digunakan untuk mengautentikasi pengguna dan memberikan token akses jika berhasil.
+func LoginAdminController(c echo.Context) error {
+	// Membuat instance pengguna dan mengikat data dari permintaan HTTP
+	user := models.User{}
+	if err := c.Bind(&user); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "Fail to parse request body",
+			"error":   err.Error(),
+		})
+	}
+
+	// Mencari pengguna dalam basis data berdasarkan email dan kata sandi
+	err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"message": constants.ErrFailedToLogIn,
+			"error":   err.Error(),
+		})
+	}
+
+	token, err := middlewares.CreateToken(user.ID, user.Role)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": constants.ErrTokenCreationFailed,
+			"error":   err.Error(),
+		})
+	}
+	UserResponse := models.UserResponse{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Token:    token,
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Success login",
+		"user":    UserResponse,
+	})
+}
+
 func LoginUserController(c echo.Context) error {
 	// Membuat instance pengguna dan mengikat data dari permintaan HTTP
 	user := models.User{}

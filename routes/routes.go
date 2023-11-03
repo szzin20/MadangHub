@@ -16,6 +16,8 @@ func InitmyRoutes() *echo.Echo {
 
 	middlewares.LogMiddleware(e)
 
+	e.POST("/admin/login", controller.LoginAdminController)
+
 	userGroup := e.Group("/users")
 	userGroup.POST("/register", controller.RegisterUser)
 	userGroup.POST("/login", controller.LoginUserController)
